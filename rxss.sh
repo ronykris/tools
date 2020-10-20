@@ -22,7 +22,7 @@ done
 
 RED='\033[0;31m'
 NC='\033[0m'
-TOOLS_HOME=/root/tools
+TOOLS_HOME=/root/recon
 RECON_DIR=$TOOLS_HOME/$1.recon
 OUTFILE=$RECON_DIR/$1.xss.txt
 touch $OUTFILE
