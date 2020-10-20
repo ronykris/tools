@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TOOLS_HOME=/root/recon
+TOOLS_HOME=$(pwd)
 mkdir $TOOLS_HOME/$1.recon
 cd $TOOLS_HOME/$1.recon
 
