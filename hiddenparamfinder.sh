@@ -21,7 +21,7 @@ while getopts ":h" option; do
 done
 
 
-TOOLS_HOME=/root/recon
+TOOLS_HOME=$(pwd)
 mkdir $TOOLS_HOME/$1.param
 
 cat $1 | waybackurls | tee -a $TOOLS_HOME/$1.param/$1.urls.txt
