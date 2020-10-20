@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-TOOLS=/root/recon
+TOOLS=$(pwd)
 mkdir $TOOLS/$1.recon
 cd $TOOLS/$1.recon
 curl -s https://certspotter.com/api/v0/certs\?domain\=$1 | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $1 |tee 1.txt
