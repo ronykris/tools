@@ -1,39 +1,59 @@
 #!/bin/bash
+set -x
 
-Help()
-{
-   # Display Help
-   echo
-   echo "Syntax: hiddenparamfinder.sh domain.txt"
-   echo "options:"
-   echo "h     Print this Help."
-   echo
-}
-while getopts ":h" option; do
-   case $option in
-      h) # display Help
-         Help
-         exit;;
-     \?) # incorrect option
-         echo "Error: Invalid option"
-         exit;;
-   esac
+usage() { echo "Usage: $0 [-d domain.com] [-s subdomains.txt]" 1>&2; exit 1; }
+
+while getopts ":d:s:" opt; do
+        case ${opt} in
+                d)
+                        domain=${OPTARG}
+                        ;;
+                s)
+                        subs=${OPTARG}
+                        ;;
+                *)
+                        usage
+                        ;;
+        esac
 done
 
+if [[ -z "${domain}" ]];
+then
+        echo "[-] No domain supplied. Use -d domain.com"
+        echo "[!] Exiting..."
+        exit 1
+fi
 
-TOOLS_HOME=$(pwd)
-mkdir $TOOLS_HOME/$1.param
+if [[ -z "${subs}" ]];
+then
+	echo "[-] No subdomain list supplied. Use -s subdomains.txt"
+	echo "[!] Exiting..."
+	exit 1
+fi
 
-cat $1 | waybackurls | tee -a $TOOLS_HOME/$1.param/$1.urls.txt
+
+
+
+TOOLS_HOME=/root/recon/tools
+OUTDIR=${TOOLS_HOME}/${domain}.recon
+t_urls=${OUTDIR}/${subs}.urls.txt
+t_urls_200=${OUTDIR}/$subs.urls.200.txt
+t_urls_uniq=$OUTDIR/$subs.urls.200.uniq.txt
+f_urls_param=$OUTDIR/$subs.urls.param.txt
+f_urls_hiddenparam=$OUTDIR/$subs.hiddenparam.txt
+
+cat $subs | waybackurls | tee -a ${t_urls}
 #assetfinder $1 -subs-only | waybackurls | tee -a $TOOLS_HOME/$1.param/$1.urls.txt
 #lines = `wc -l $TOOLS_HOME/$1.param/$1.urls.txt`
 #mkdir $TOOLS_HOME/$1.param/temp
 
-cat $TOOLS_HOME/$1.param/$1.urls.txt | hakcheckurl | sed -e 's/^200\ //g' | grep -v '[0-9]' | tee $TOOLS_HOME/$1.param/$1.urls.200.txt
-cat $TOOLS_HOME/$1.param/$1.urls.200.txt | uniq | grep -v "robot" | tee $TOOLS_HOME/$1.param/$1.urls.200.uniq.txt
-touch $TOOLS_HOME/$1.param/$1.urls.param.txt
-cat $TOOLS_HOME/$1.param/$1.urls.200.uniq.txt | while read url;
+cat ${t_urls} | hakcheckurl | sed -e 's/^200\ //g' | tee -a $t_urls.temp 
+cat $t_urls.temp | grep -v '[0-9]' | tee $t_urls_200
+cat $t_urls_200 | uniq | grep -v "robot" | tee $t_urls_uniq
+touch $f_urls_param
+cat $t_urls_uniq | while read url;
 do
-	curl -s -L $url | grep \"hidden\" | egrep -o "name=('|\")[a-z_A-Z_0-9-]*('|\")" | sed -e 's/\"/=/g' -e "s|name==|$url/?|g" | tee -a $TOOLS_HOME/$1.param/$1.urls.param.txt;
+	curl -s -L $url | grep \"hidden\" | egrep -o "name=('|\")[a-z_A-Z_0-9-]*('|\")" | sed -e 's/\"/=/g' -e "s|name==|$url/?|g" | tee -a $f_urls_param;
 done
-cat $TOOLS_HOME/$1.param/$1.urls.param.txt | sort -u | tee $TOOLS_HOME/$1.param/$1.urls.hiddenparam.txt
+cat $f_urls_param | sort -u | tee $f_urls_hiddenparam
+

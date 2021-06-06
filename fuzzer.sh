@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TOOLS=$(pwd)
+TOOLS=/root/recon
 inputfile = $1
 while IFS= read -r line
 do
